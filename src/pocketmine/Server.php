@@ -297,8 +297,6 @@ class Server{
 	public $antiFly = true;
 	public $allowInstabreak = false;
 	public $folderpluginloader = false;
-	public $forceResources = false;
-	public $resourceStack = [];
 	
 	/**
 	 * @return string
@@ -1470,9 +1468,6 @@ class Server{
 		$this->allowInstabreak = $this->getAdvancedProperty("anticheat.allow-instabreak", true);
 		$this->antiFly = $this->getAdvancedProperty("anticheat.anti-fly", true);
 		$this->folderpluginloader = $this->getAdvancedProperty("developer.folder-plugin-loader", false);
-
-		$this->forceResources = $this->getAdvancedProperty("packs.force-resources", false);
-		$this->resourceStack = $this->getAdvancedProperty("packs.resource-stack", []);
 	}
 	
 	/**
@@ -2453,8 +2448,8 @@ class Server{
 	}
 
 	private function checkTickUpdates($currentTick, $tickTime){
-		foreach($this->players as $p){
-			if(!$p->loggedIn and ($tickTime - $p->creationTime) >= 10){
+		foreach($this->players as $p) {
+            if(!$p->loggedIn and ($tickTime - $p->creationTime) >= 10){
                 $p->close("", "Login timeout");
             }elseif($this->alwaysTickPlayers){
 				$p->onUpdate($currentTick);
