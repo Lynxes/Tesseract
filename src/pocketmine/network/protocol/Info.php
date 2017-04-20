@@ -32,7 +32,7 @@ interface Info{
 	 */
 
 	const CURRENT_PROTOCOL = 107;
-	const ACCEPTED_PROTOCOLS = [106,107];
+	const ACCEPTED_PROTOCOLS = [107];// There we changes to the packets, we cant do multi-protocol!
 	const MINECRAFT_VERSION = "v1.0.7";
 	const MINECRAFT_VERSION_NETWORK = "1.0.7";
 
