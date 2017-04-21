@@ -69,6 +69,7 @@ namespace pocketmine {
     use pocketmine\utils\Binary;
     use pocketmine\utils\MainLogger;
 
+    use pocketmine\utils\ServerKiller;
     use pocketmine\utils\Terminal;
     use pocketmine\utils\Utils;
     use pocketmine\wizard\Installer;
@@ -469,6 +470,9 @@ namespace pocketmine {
     new Server($autoloader, $logger, \pocketmine\PATH, \pocketmine\DATA, \pocketmine\PLUGIN_PATH, $lang);
 
     $logger->info("Stopping other threads");
+
+    $killer = new ServerKiller(8);
+    $killer->start();
 
     foreach (ThreadManager::getInstance()->getAll() as $id => $thread) {
         $logger->debug("Stopping " . (new \ReflectionClass($thread))->getShortName() . " thread");
