@@ -21,7 +21,7 @@
  *
  */
  
- namespace pocketmine\command\defaults;
+namespace pocketmine\command\defaults;
  
 use pocketmine\network\protocol\SetTitlePacket;
 use pocketmine\command\CommandSender;
@@ -43,7 +43,7 @@ class TitleCommand extends VanillaCommand {
 				return true;
 			}
 			if(count($args) <= 0){
-				$sender->sendMessage("Usage: /title <title> <subtile> [text]");
+				$sender->sendMessage("Usage: /title <title> <subtitle> [text]");
 				return false;
 			}
         }
