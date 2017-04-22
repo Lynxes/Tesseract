@@ -21,4 +21,5 @@ Desktop.ini
 /docs/build/
 !/docs/requirements.txt
 .project
-/src/.idea/*
+src/.idea/*
+src/.idea
