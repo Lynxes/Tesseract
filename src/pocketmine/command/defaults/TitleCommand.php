@@ -21,7 +21,7 @@
  *
  */
  
- namespace pocketmine\command\defaults;
+namespace pocketmine\command\defaults;
  
 use pocketmine\event\TranslationContainer;
 use pocketmine\network\protocol\SetTitlePacket;
