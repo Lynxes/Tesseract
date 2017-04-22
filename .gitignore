@@ -4,6 +4,7 @@ plugins/*
 bin/*
 timings/*
 resource_packs/*
+src/.idea/*
 *.log
 *.phar
 *.json
