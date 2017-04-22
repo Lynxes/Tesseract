@@ -4,7 +4,6 @@ plugins/*
 bin/*
 timings/*
 resource_packs/*
-src/.idea/*
 *.log
 *.phar
 *.json
@@ -22,4 +21,4 @@ Desktop.ini
 /docs/build/
 !/docs/requirements.txt
 .project
-src/.idea/*
+/src/.idea/*
