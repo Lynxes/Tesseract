@@ -23,8 +23,8 @@ namespace pocketmine\item;
 
 use pocketmine\block\BlockIds;
 
-interface ItemIds extends BlockIds{
-	
+interface ItemIds extends BlockIds {
+
 	//All BlockIds are also accessible through this interface.
 	const IRON_SHOVEL = 256;
 	const IRON_PICKAXE = 257;
@@ -155,7 +155,7 @@ interface ItemIds extends BlockIds{
 	const BOTTLE_O_ENCHANTING = 384; const ENCHANTING_BOTTLE = 384;
 	const FIRE_CHARGE = 385;
 	//const BOOK_AND_QUILL = 386;
-	//const WRITTTEN_BOOK = 387;  
+	//const WRITTTEN_BOOK = 387;
 	const EMERALD = 388;
 	const ITEM_FRAME = 389;
 	const FLOWER_POT = 390;
@@ -206,10 +206,10 @@ interface ItemIds extends BlockIds{
 	const DRAGONS_BREATH = 437;
 	const SPLASH_POTION = 438;
 	const ELYTRA = 444;
-	const ELYTRA_WINGS = 444; 
+	const ELYTRA_WINGS = 444;
 	const SHULKER_SHELL = 445;
 	const BEETROOT = 457;
-	const BEETROOT_SEEDS = 458; 
+	const BEETROOT_SEEDS = 458;
 	const BEETROOT_SEED = 458;
 	const BEETROOT_SOUP = 459;
 	const RAW_SALMON = 460;
