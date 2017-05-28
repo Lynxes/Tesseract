@@ -24,7 +24,7 @@ namespace pocketmine\block;
 
 
 
-class PoweredRail extends Solid{
+class PoweredRail extends Rail{
 
 	protected $id = self::POWERED_RAIL;
 
