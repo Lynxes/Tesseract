@@ -1500,6 +1500,13 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                         $this->teleport($ev->getTo());
                     } else {
                         $this->level->addEntityMovement($this->x >> 4, $this->z >> 4, $this->getId(), $this->x, $this->y + $this->getEyeHeight(), $this->z, $this->yaw, $this->pitch, $this->yaw);
+
+                        $distance = $from->distance($to);
+                        if($this->isSprinting()){
+                            $this->exhaust(0.1 * $distance, PlayerExhaustEvent::CAUSE_SPRINTING);
+                        }else{
+                            $this->exhaust(0.01 * $distance, PlayerExhaustEvent::CAUSE_WALKING);
+                        }
                     }
                 }
             }
@@ -1633,7 +1640,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                                     if ($this->fromPos->getLevel()->getBlock($this->temporalVector->fromObjectAdd($this->fromPos, $add[$i] * $j, 0, $add[$i + 4] * $j))->getId() === Block::AIR) {
                                         if ($this->fromPos->getLevel()->getBlock($this->temporalVector->fromObjectAdd($this->fromPos, $add[$i] * $j, 1, $add[$i + 4] * $j))->getId() === Block::AIR) {
                                             $tempos = $this->fromPos->add($add[$i] * $j, 0, $add[$i + 4] * $j);
-                                            //$this->getLevel()->getServer()->getLogger()->debug($tempos);
                                             break;
                                         }
                                     }
@@ -1660,16 +1666,42 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
             $this->processMovement($tickDiff);
             $this->entityBaseTick($tickDiff);
 
-            if (!$this->isSpectator()) {
-                $this->checkNearEntities($tickDiff);
-            }
-
             if ($this->isOnFire() or $this->lastUpdate % 10 == 0) {
                 if ($this->isCreative() and !$this->isInsideOfFire()) {
                     $this->extinguish();
                 } elseif ($this->getLevel()->getWeather()->isRainy()) {
                     if ($this->getLevel()->canBlockSeeSky($this)) {
                         $this->extinguish();
+                    }
+                }
+            }
+
+            if(!$this->isSpectator()){
+                $this->checkNearEntities($tickDiff);
+
+                if($this->speed !== null){
+                    if($this->onGround){
+                        if($this->inAirTicks !== 0){
+                            $this->startAirTicks = 5;
+                        }
+                        $this->inAirTicks = 0;
+                    }else{
+                        if($this->inAirTicks > 10 and !$this->isSleeping() and !$this->isImmobile()){
+                            $expectedVelocity = (-$this->gravity) / $this->drag - ((-$this->gravity) / $this->drag) * exp(-$this->drag * ($this->inAirTicks - $this->startAirTicks));
+                            $diff = ($this->speed->y - $expectedVelocity) ** 2;
+
+                            if(!$this->hasEffect(Effect::JUMP) and $diff > 0.6 and $expectedVelocity < $this->speed->y){
+                                if($this->inAirTicks < 100){
+                                    $this->setMotion(new Vector3(0, $expectedVelocity, 0));
+                                }elseif($this->kick("Flying is not enabled on this server")){
+                                    $this->timings->stopTiming();
+
+                                    return false;
+                                }
+                            }
+                        }
+
+                        ++$this->inAirTicks;
                     }
                 }
             }
@@ -2420,10 +2452,10 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
                         $this->removeAllEffects();
                         $this->setHealth($this->getMaxHealth());
-                        $this->setFood(20);
-                        $this->starvationTick = 0;
-                        $this->foodTick = 0;
-                        $this->foodUsageTime = 0;
+
+                        foreach($this->attributeMap->getAll() as $attr){
+                            $attr->resetToDefault();
+                        }
 
                         $this->sendData($this);
 
@@ -2435,6 +2467,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                         $this->scheduleUpdate();
                         break;
                     case PlayerActionPacket::ACTION_JUMP:
+                        $this->jump();
                         break 2;
                     case PlayerActionPacket::ACTION_START_SPRINT:
                         $ev = new PlayerToggleSprintEvent($this, true);
@@ -3523,6 +3556,18 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
             return;
         }
 
+        parent::kill();
+
+        $pk = new RespawnPacket();
+        $pos = $this->getSpawn();
+        $pk->x = $pos->x;
+        $pk->y = $pos->y;
+        $pk->z = $pos->z;
+        $this->dataPacket($pk);
+    }
+
+    public function callDeathEvent(){
+
         $message = "death.attack.generic";
 
         $params = [
@@ -3632,10 +3677,9 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 break;
 
             default:
+                break;
 
         }
-
-        Entity::kill();
 
         $ev = new PlayerDeathEvent($this, $this->getDrops(), new TranslationContainer($message, $params));
         $ev->setKeepInventory($this->server->keepInventory);
@@ -3665,16 +3709,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
         if ($ev->getDeathMessage() != "") {
             $this->server->broadcast($ev->getDeathMessage(), Server::BROADCAST_CHANNEL_USERS);
         }
-
-        $pos = $this->getSpawn();
-
-        $this->setHealth(0);
-
-        $pk = new RespawnPacket();
-        $pk->x = $pos->x;
-        $pk->y = $pos->y;
-        $pk->z = $pos->z;
-        $this->dataPacket($pk);
     }
 
     public function setHealth($amount) {
