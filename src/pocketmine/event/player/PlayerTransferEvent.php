@@ -25,7 +25,6 @@ namespace pocketmine\event\player;
 
 use pocketmine\event\Cancellable;
 use pocketmine\Player;
-use pocketmine\Server;
 
 class PlayerTransferEvent extends PlayerEvent implements Cancellable {
 

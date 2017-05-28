@@ -25,7 +25,6 @@ namespace pocketmine\entity;
 
 use pocketmine\Player;
 use pocketmine\network\protocol\AddEntityPacket;
-use pocketmine\network\protocol\MobArmorEquipmentPacket;
 
 class Horse extends Living {
 

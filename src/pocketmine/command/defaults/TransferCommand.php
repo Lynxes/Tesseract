@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /*
  *
@@ -23,61 +23,60 @@
 
 namespace pocketmine\command\defaults;
 
-use pocketmine\network\protocol\TransferPacket;
 use pocketmine\command\CommandSender;
 use pocketmine\{
     event\TranslationContainer, Player, Server
 };
 
-class TransferCommand extends VanillaCommand{
-	
-	public function __construct($name){
-		parent::__construct(
-			$name,
-			"%pocketmine.command.transfer.description",
-			"%pocketmine.command.transfer.usage",
-			["transfer"]
-		);
-		$this->setPermission("pocketmine.command.transfer");
-	}
+class TransferCommand extends VanillaCommand {
 
-	public function execute(CommandSender $sender, $currentAlias, array $args){
-		$address = null;
-		$port = null;
-		$player = null;
-		if($sender instanceof Player){
-			if(!$this->testPermission($sender)){
-				return true;
-			}
+    public function __construct($name) {
+        parent::__construct(
+            $name,
+            "%pocketmine.command.transfer.description",
+            "%pocketmine.command.transfer.usage",
+            ["transfer"]
+        );
+        $this->setPermission("pocketmine.command.transfer");
+    }
 
-			if(count($args) <= 0){
-				$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
-				return false;
-			}
+    public function execute(CommandSender $sender, $currentAlias, array $args) {
+        $address = null;
+        $port = null;
+        $player = null;
+        if ($sender instanceof Player) {
+            if (!$this->testPermission($sender)) {
+                return true;
+            }
 
-			$address = strtolower($args[0]);
-			$port = (isset($args[1]) && is_numeric($args[1]) ? $args[1] : 19132);
+            if (count($args) <= 0) {
+                $sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
+                return false;
+            }
 
-			$sender->transfer($address, $port);
+            $address = strtolower($args[0]);
+            $port = (isset($args[1]) && is_numeric($args[1]) ? $args[1] : 19132);
 
-			return false;
-		}
+            $sender->transfer($address, $port);
 
-		if(count($args) <= 1){
-			$sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
-			return false;
-		}
+            return false;
+        }
 
-		if(!($player = Server::getInstance()->getPlayer($args[0])) instanceof Player){
-			$sender->sendMessage("Player specified not found!");
-			return false;
-		}
+        if (count($args) <= 1) {
+            $sender->sendMessage(new TranslationContainer("commands.generic.usage", [$this->usageMessage]));
+            return false;
+        }
 
-		$address = strtolower($args[1]);
-		$port = (isset($args[2]) && is_numeric($args[2]) ? $args[2] : 19132);
-		
-		$sender->sendMessage("Sending ".$player->getName()." to ".$address.":".$port);
+        if (!($player = Server::getInstance()->getPlayer($args[0])) instanceof Player) {
+            $sender->sendMessage("Player specified not found!");
+            return false;
+        }
 
-		$player->transfer($address, $port);
-	}
+        $address = strtolower($args[1]);
+        $port = (isset($args[2]) && is_numeric($args[2]) ? $args[2] : 19132);
+
+        $sender->sendMessage("Sending " . $player->getName() . " to " . $address . ":" . $port);
+
+        $player->transfer($address, $port);
+    }
 }

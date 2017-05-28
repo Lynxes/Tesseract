@@ -26,7 +26,7 @@ use pocketmine\item\Item;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\event\Cancellable;
 
-class PlayerEnchantEvent extends PlayerEvent {
+class PlayerEnchantEvent extends PlayerEvent implements Cancellable{
 
     public static $handlerList = null;
 
@@ -34,6 +34,7 @@ class PlayerEnchantEvent extends PlayerEvent {
 
     /**
      * @param Item $item
+     * @param Enchantment $enchantment
      */
     public function __construct(Item $item, Enchantment $enchantment) {
         $this->item = $item;

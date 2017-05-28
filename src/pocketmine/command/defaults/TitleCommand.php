@@ -24,7 +24,6 @@
 namespace pocketmine\command\defaults;
  
 use pocketmine\event\TranslationContainer;
-use pocketmine\network\protocol\SetTitlePacket;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
 

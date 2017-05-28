@@ -3331,22 +3331,28 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
     }
 
     /**
-	 * @deprecated
+     * @deprecated
      *
-     * @param $title
+     * @param string $title
      * @param string $subtitle
+     * @param int $fadein
+     * @param int $fadeout
+     * @param int $duration
      * @return bool
      */
     public function sendTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
         $this->prepareTitle($title, $subtitle, $fadein, $fadeout, $duration);
     }
 
-	/**
+    /**
      * Send a title text with/without a sub title text to a player
      * -1 defines the default value used by the client
      *
-     * @param $title
+     * @param string $title
      * @param string $subtitle
+     * @param int $fadein
+     * @param int $fadeout
+     * @param int $duration
      * @return bool
      */
     public function addTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
@@ -3368,6 +3374,11 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
     /**
      * This code must be changed in the future but currently, send 2 packets fixes the subtitle bug...
+     * @param string $title
+     * @param string $subtitle
+     * @param int $fadein
+     * @param int $fadeout
+     * @param int $duration
      */
     private function prepareTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
         if ($subtitle !== "") {
@@ -3393,7 +3404,10 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
      * Send an action bar text to a player
      * -1 defines the default value used by the client
      *
-     * @param $title
+     * @param string $title
+     * @param int $fadein
+     * @param int $fadeout
+     * @param int $duration
      * @return bool
      */
     public function sendActionBar(string $title, int $fadein = -1, int $fadeout = -1, int $duration = -1) {

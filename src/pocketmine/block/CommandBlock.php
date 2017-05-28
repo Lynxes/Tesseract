@@ -23,8 +23,6 @@
 
 namespace pocketmine\block;
 
-use pocketmine\item\Item;
-
 class CommandBlock extends Solid{
 	protected $id = self::COMMAND_BLOCK;
 
