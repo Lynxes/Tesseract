@@ -3,11 +3,10 @@
 ## Tesseract Introduction
 -------------
 **Tesseract is the advanced server software based on PocketMine-MP and Genisys! <br>
-Tesseract supports packet and event debug system (for plugin developers) <br>
 
 ## Builds
 __Travis-CI Build:__<br>
- [![Travis-CI](https://travis-ci.org/TesseractTeam/Tesseract.svg?branch=master)](https://travis-ci.org/TesseractTeam/Tesseract)<br>
+ [![Travis-CI](https://travis-ci.org/TesseractTeam-v2/Tesseract.svg?branch=master)](https://travis-ci.org/TesseractTeam-v2/Tesseract)<br>
  
 ## Quick Links (Instead of scrolling, click these!)
 
