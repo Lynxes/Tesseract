@@ -29,13 +29,11 @@ use pocketmine\command\CommandSender;
 use pocketmine\entity\Animal;
 use pocketmine\entity\Arrow;
 use pocketmine\entity\Attribute;
-use pocketmine\entity\Boat;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\Living;
-use pocketmine\entity\Minecart;
 use pocketmine\entity\Projectile;
 use pocketmine\event\entity\EntityCombustByEntityEvent;
 use pocketmine\event\entity\EntityDamageByBlockEvent;
@@ -169,9 +167,9 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		$lname = strtolower($name);
 		$len = strlen($name);
 		return $lname !== "rcon" and $lname !== "console" and $len >= 1 and $len <= 16 and preg_match("/[^A-Za-z0-9_]/", $name) === 0;
-  }
+    }
 
-  public static function isValidSkin(string $skin) : bool{
+	public static function isValidSkin(string $skin) : bool{
   		return strlen($skin) === 64 * 64 * 4 or strlen($skin) === 64 * 32 * 4;
     }
 
@@ -2053,13 +2051,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 break;
 
             case ProtocolInfo::MOVE_PLAYER_PACKET:
-                if ($this->linkedEntity instanceof Entity) {
-                    $entity = $this->linkedEntity;
-                    if ($entity instanceof Boat) {
-                        $entity->setPosition($this->temporalVector->setComponents($packet->x, $packet->y - 0.3, $packet->z));
-                    }
-                }
-
                 $newPos = new Vector3($packet->x, $packet->y - $this->getEyeHeight(), $packet->z);
 
                 $revert = false;
@@ -2574,20 +2565,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
                 if ($target instanceof Player and $this->server->getConfigBoolean("pvp", true) === false) {
                     $cancelled = true;
-                }
-
-                if ($target instanceof Boat or ($target instanceof Minecart and $target->getType() == Minecart::TYPE_NORMAL)) {
-                    if ($packet->action === InteractPacket::ACTION_RIGHT_CLICK) {
-                        $this->linkEntity($target);
-                    } elseif ($packet->action === InteractPacket::ACTION_LEFT_CLICK) {
-                        if ($this->linkedEntity == $target) {
-                            $target->setLinked(0, $this);
-                        }
-                        $target->close();
-                    } elseif ($packet->action === InteractPacket::ACTION_LEAVE_VEHICLE) {
-                        $this->setLinked(0, $target);
-                    }
-                    return;
                 }
 
                 if ($packet->action === InteractPacket::ACTION_RIGHT_CLICK) {
