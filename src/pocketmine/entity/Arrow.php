@@ -42,20 +42,32 @@ class Arrow extends Projectile {
 
     protected $damage = 2;
 
-    protected $isCritical;
     protected $potionId;
 
-    public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null, $critical = false) {
-        $this->isCritical = (bool)$critical;
+    public function __construct(Level $level, CompoundTag $nbt, Entity $shootingEntity = null, bool $critical = false) {
         if (!isset($nbt->Potion)) {
             $nbt->Potion = new ShortTag("Potion", 0);
         }
         parent::__construct($level, $nbt, $shootingEntity);
         $this->potionId = $this->namedtag["Potion"];
+        $this->setCritical($critical);
     }
 
     public function isCritical(): bool {
-        return $this->isCritical;
+        return $this->getDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CRITICAL);
+    }
+
+    public function setCritical(bool $value = true){
+        $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_CRITICAL, $value);
+    }
+
+    public function getResultDamage() : int {
+        $base = parent::getResultDamage();
+        if ($this->isCritical()) {
+            return ($base + mt_rand(0, (int)($base / 2) + 1));
+        } else {
+            return $base;
+        }
     }
 
     public function getPotionId(): int {
@@ -71,13 +83,8 @@ class Arrow extends Projectile {
 
         $hasUpdate = parent::onUpdate($currentTick);
 
-        if (!$this->hadCollision and $this->isCritical) {
-            $this->level->addParticle(new CriticalParticle($this->add(
-                $this->width / 2 + mt_rand(-100, 100) / 500,
-                $this->height / 2 + mt_rand(-100, 100) / 500,
-                $this->width / 2 + mt_rand(-100, 100) / 500)));
-        } elseif ($this->onGround) {
-            $this->isCritical = false;
+        if($this->onGround or $this->hadCollision){
+            $this->setCritical(false);
         }
 
         if ($this->potionId != 0) {
@@ -92,7 +99,7 @@ class Arrow extends Projectile {
         }
 
         if ($this->age > 1200) {
-            $this->kill();
+            $this->close();
             $hasUpdate = true;
         }
 
@@ -111,6 +118,8 @@ class Arrow extends Projectile {
         $pk->speedX = $this->motionX;
         $pk->speedY = $this->motionY;
         $pk->speedZ = $this->motionZ;
+        $pk->yaw = $this->yaw;
+        $pk->pitch = $this->pitch;
         $pk->metadata = $this->dataProperties;
         $player->dataPacket($pk);
 

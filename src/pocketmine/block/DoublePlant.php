@@ -44,6 +44,10 @@ class DoublePlant extends Flowable{
 		return true;
 	}
 
+    public function getAffectedBlocks() : array{
+        return [$this, $this->getSide(($this->meta & 0x08) === 0x08 ? Vector3::SIDE_DOWN : Vector3::SIDE_UP)];
+	}
+
 	public function getName() : string{
 		static $names = [
 			0 => "Sunflower",

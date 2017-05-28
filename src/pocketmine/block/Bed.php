@@ -49,6 +49,10 @@ class Bed extends Transparent{
 		return "Bed Block";
 	}
 
+    public function getAffectedBlocks() : array{
+        return [$this, $this->getSide(self::getOtherHalfSide($this->meta))];
+	}
+
 	protected function recalculateBoundingBox() {
 		return new AxisAlignedBB(
 			$this->x,

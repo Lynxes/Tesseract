@@ -1468,7 +1468,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
         $delta = pow($this->lastX - $to->x, 2) + pow($this->lastY - $to->y, 2) + pow($this->lastZ - $to->z, 2);
         $deltaAngle = abs($this->lastYaw - $to->yaw) + abs($this->lastPitch - $to->pitch);
 
-        if (!$revert and ($delta > (1 / 16) or $deltaAngle > 10)) {
+        if(!$revert and ($delta > 0.0001 or $deltaAngle > 1.0)){
 
             $isFirst = ($this->lastX === null or $this->lastY === null or $this->lastZ === null);
 
@@ -1686,7 +1686,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                         }
                         $this->inAirTicks = 0;
                     }else{
-                        if($this->inAirTicks > 10 and !$this->isSleeping() and !$this->isImmobile()){
+                        if($this->inAirTicks > 10 and !$this->isSleeping() and !$this->isImmobile() and $this->isSurvival()){
                             $expectedVelocity = (-$this->gravity) / $this->drag - ((-$this->gravity) / $this->drag) * exp(-$this->drag * ($this->inAirTicks - $this->startAirTicks));
                             $diff = ($this->speed->y - $expectedVelocity) ** 2;
 
@@ -2161,9 +2161,10 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                         break;
                     }
                     $target = $this->level->getBlock($blockVector);
-                    $block = $target->getSide($packet->face);
+                    $blocks = $target->getAffectedBlocks();
+                    $blocks[] = $target->getSide($packet->face);
 
-                    $this->level->sendBlocks([$this], [$target, $block], UpdateBlockPacket::FLAG_ALL_PRIORITY);
+                    $this->level->sendBlocks([$this], $blocks, UpdateBlockPacket::FLAG_ALL_PRIORITY);
                     break;
                 } elseif ($packet->face === -1) {
                     $aimPos = (new Vector3($packet->x / 32768, $packet->y / 32768, $packet->z / 32768))->normalize();
@@ -2344,8 +2345,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                                         new DoubleTag("", cos($this->yaw / 180 * M_PI) * cos($this->pitch / 180 * M_PI))
                                     ]),
                                     "Rotation" => new ListTag("Rotation", [
-                                        new FloatTag("", $this->yaw),
-                                        new FloatTag("", $this->pitch)
+                                        new FloatTag("", ($this->yaw > 180 ? 360 : 0) - $this->yaw),
+                                        new FloatTag("", -$this->pitch)
                                     ]),
                                     "Fire" => new ShortTag("Fire", $this->isOnFire() ? 45 * 60 : 0),
                                     "Potion" => new ShortTag("Potion", $arrow->getDamage())
@@ -2555,15 +2556,16 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 }
 
                 $this->inventory->sendContents($this);
-                $target = $this->level->getBlock($vector);
-                $tile = $this->level->getTile($vector);
-
-                $this->level->sendBlocks([$this], [$target], UpdateBlockPacket::FLAG_ALL_PRIORITY);
-
                 $this->inventory->sendHeldItem($this);
 
-                if ($tile instanceof Spawnable) {
-                    $tile->spawnTo($this);
+                $blocks = $this->level->getBlock($vector)->getAffectedBlocks();
+                $this->level->sendBlocks([$this], $blocks, UpdateBlockPacket::FLAG_ALL_PRIORITY);
+
+                foreach($blocks as $pos) {
+                    $t = $this->level->getTile($pos);
+                    if ($t instanceof Spawnable) {
+                        $t->spawnTo($this);
+                    }
                 }
                 break;
 
