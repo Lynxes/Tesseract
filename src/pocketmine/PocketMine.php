@@ -84,6 +84,12 @@ namespace pocketmine {
      * This is the only non-class based file on this project.
      * Enjoy it as much as I did writing it. I don't want to do it again.
      */
+	
+	if(!extension_loaded("phar")){
+ 		echo "[CRITICAL] Unable to find the Phar extension." . PHP_EOL;
+ 		echo "[CRITICAL] Please download a Phar build from our Travis-CI page" . PHP_EOL;
+ 		exit(1);
+ 	}
 
     if (\Phar::running(true) !== "") {
         @define('pocketmine\PATH', \Phar::running(true) . "/");
