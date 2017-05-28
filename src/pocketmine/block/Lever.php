@@ -26,7 +26,7 @@ use pocketmine\level\Level;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class Lever extends Solid{
+class Lever extends Flowable{
 	protected $id = self::LEVER;
 
 	public function __construct($meta = 0){
