@@ -24,7 +24,7 @@ namespace pocketmine\block;
 use pocketmine\item\Item;
 
 
-class DaylightDetector extends Solid{
+class DaylightDetector extends Transparent{
 	protected $id = self::DAYLIGHT_SENSOR;
 	
 	public function __construct($meta = 0){
