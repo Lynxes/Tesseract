@@ -165,6 +165,16 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
     const CRAFTING_ANVIL = 2;
     const CRAFTING_ENCHANT = 3;
 
+    public static function isValidUserName(string $name) : bool{
+		$lname = strtolower($name);
+		$len = strlen($name);
+		return $lname !== "rcon" and $lname !== "console" and $len >= 1 and $len <= 16 and preg_match("/[^A-Za-z0-9_]/", $name) === 0;
+  }
+
+  public static function isValidSkin(string $skin) : bool{
+  		return strlen($skin) === 64 * 64 * 4 or strlen($skin) === 64 * 32 * 4;
+    }
+
     /** @var SourceInterface */
     protected $interface;
 
@@ -2011,32 +2021,15 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 $this->uuid = UUID::fromString($packet->clientUUID);
                 $this->rawUUID = $this->uuid->toBinary();
 
-                $valid = true;
-                $len = strlen($packet->username);
-                if ($len > 16 or $len < 3) {
-                    $valid = false;
-                }
-                for ($i = 0; $i < $len and $valid; ++$i) {
-                    $c = ord($packet->username{$i});
-                    if (($c >= ord("a") and $c <= ord("z")) or ($c >= ord("A") and $c <= ord("Z")) or ($c >= ord("0") and $c <= ord("9")) or $c === ord("_")) {
-                        continue;
-                    }
+    if(!Player::isValidUserName($packet->username)){
+			$this->close("", "disconnectionScreen.invalidName");
+			return true;
+		}
 
-                    $valid = false;
-                    break;
-                }
-
-                if (!$valid or $this->iusername === "rcon" or $this->iusername === "console") {
-                    $this->close("", "disconnectionScreen.invalidName");
-
-                    break;
-                }
-
-                if ((strlen($packet->skin) != 64 * 64 * 4) and (strlen($packet->skin) != 64 * 32 * 4)) {
-                    $this->close("", "disconnectionScreen.invalidSkin");
-
-                    break;
-                }
+		if(!Player::isValidSkin($packet->skin)){
+			$this->close("", "disconnectionScreen.invalidSkin");
+			return true;
+		}
 
                 $this->setSkin($packet->skin, $packet->skinId);
 
@@ -3349,7 +3342,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
     public function sendTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
         $this->prepareTitle($title, $subtitle, $fadein, $fadeout, $duration);
     }
-	
+
 	/**
      * Send a title text with/without a sub title text to a player
      * -1 defines the default value used by the client
@@ -3388,7 +3381,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
             $pk->duration = $duration;
             $this->dataPacket($pk);
         }
-		
+
 		$pk = new SetTitlePacket();
         $pk->type = SetTitlePacket::TYPE_TITLE;
         $pk->title = $title;
