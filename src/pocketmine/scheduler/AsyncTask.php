@@ -127,6 +127,7 @@ abstract class AsyncTask extends \Threaded implements \Collectable {
     public function getFromThreadStore($identifier) {
         global $store;
         return $this->isGarbage() ? null : $store[$identifier];
+		return ($this->isGarbage() or !isset($store[$identifier])) ? null : $store[$identifier];
     }
 
     /**
