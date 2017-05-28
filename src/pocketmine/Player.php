@@ -32,7 +32,6 @@ use pocketmine\entity\Attribute;
 use pocketmine\entity\Boat;
 use pocketmine\entity\Effect;
 use pocketmine\entity\Entity;
-use pocketmine\entity\FishingHook;
 use pocketmine\entity\Human;
 use pocketmine\entity\Item as DroppedItem;
 use pocketmine\entity\Living;
@@ -72,7 +71,6 @@ use pocketmine\event\player\PlayerToggleFlightEvent;
 use pocketmine\event\player\PlayerToggleSneakEvent;
 use pocketmine\event\player\PlayerToggleSprintEvent;
 use pocketmine\event\player\PlayerTransferEvent;
-use pocketmine\event\player\PlayerUseFishingRodEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\event\player\PlayerToggleGlideEvent;
@@ -264,9 +262,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
     /** @var  Position */
     private $shouldResPos;
 
-    /** @var FishingHook */
-    public $fishingHook = null;
-
     /** @var Position[] */
     public $selectedPos = [];
     /** @var Level[] */
@@ -276,18 +271,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
     protected $personalCreativeItems = [];
 
     protected $lastEnderPearlUse = 0;
-
-    public function linkHookToPlayer(FishingHook $entity) {
-        if ($entity->isAlive()) {
-            $this->setFishingHook($entity);
-            $pk = new EntityEventPacket();
-            $pk->eid = $this->getFishingHook()->getId();
-            $pk->event = EntityEventPacket::FISH_HOOK_POSITION;
-            $this->server->broadcastPacket($this->level->getPlayers(), $pk);
-            return true;
-        }
-        return false;
-    }
 
     public function getDeviceModel() {
         return $this->deviceModel;
@@ -299,33 +282,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
     public function getGameVersion() {
         return $this->gameVersion;
-    }
-
-    public function unlinkHookFromPlayer() {
-        if ($this->fishingHook instanceof FishingHook) {
-            $pk = new EntityEventPacket();
-            $pk->eid = $this->fishingHook->getId();
-            $pk->event = EntityEventPacket::FISH_HOOK_TEASE;
-            $this->server->broadcastPacket($this->level->getPlayers(), $pk);
-            $this->setFishingHook();
-            return true;
-        }
-        return false;
-    }
-
-    public function isFishing() {
-        return ($this->fishingHook instanceof FishingHook);
-    }
-
-    public function getFishingHook() {
-        return $this->fishingHook;
-    }
-
-    public function setFishingHook(FishingHook $entity = null) {
-        if ($entity == null and $this->fishingHook instanceof FishingHook) {
-            $this->fishingHook->close();
-        }
-        $this->fishingHook = $entity;
     }
 
     public function getItemInHand() {
@@ -1551,12 +1507,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                     } else {
                         $this->level->addEntityMovement($this->x >> 4, $this->z >> 4, $this->getId(), $this->x, $this->y + $this->getEyeHeight(), $this->z, $this->yaw, $this->pitch, $this->yaw);
                     }
-
-                    if ($this->fishingHook instanceof FishingHook) {
-                        if ($this->distance($this->fishingHook) > 33 or $this->inventory->getItemInHand()->getId() !== Item::FISHING_ROD) {
-                            $this->setFishingHook();
-                        }
-                    }
                 }
             }
 
@@ -2255,20 +2205,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                     $reduce = true;
 
                     switch ($item->getId()) {
-                        case Item::FISHING_ROD:
-                            $this->server->getPluginManager()->callEvent($ev = new PlayerUseFishingRodEvent($this, ($this->isFishing() ? PlayerUseFishingRodEvent::ACTION_STOP_FISHING : PlayerUseFishingRodEvent::ACTION_START_FISHING)));
-                            if (!$ev->isCancelled()) {
-                                if (!$this->isFishing()) {
-                                    $f = 0.6;
-                                    $entity = Entity::createEntity("FishingHook", $this->getLevel(), $nbt, $this);
-                                    $entity->setMotion($entity->getMotion()->multiply($f));
-                                }
-                            }
-
-                            $this->setFishingHook($entity);
-                            $reduce = false;
-                            break;
-
                         case Item::SNOWBALL:
                             $f = 1.5;
                             $entity = Entity::createEntity("Snowball", $this->getLevel(), $nbt, $this);
@@ -3404,6 +3340,17 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
     }
 
     /**
+	 * @deprecated
+     *
+     * @param $title
+     * @param string $subtitle
+     * @return bool
+     */
+    public function sendTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
+        $this->prepareTitle($title, $subtitle, $fadein, $fadeout, $duration);
+    }
+	
+	/**
      * Send a title text with/without a sub title text to a player
      * -1 defines the default value used by the client
      *
@@ -3411,8 +3358,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
      * @param string $subtitle
      * @return bool
      */
-    public function sendTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
-        $this->prepareTitle($title, $subtitle, $fadein, $fadeout, $duration); //correct the bug but not optimized
+    public function addTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
         $this->prepareTitle($title, $subtitle, $fadein, $fadeout, $duration);
     }
 
@@ -3433,14 +3379,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
      * This code must be changed in the future but currently, send 2 packets fixes the subtitle bug...
      */
     private function prepareTitle(string $title, string $subtitle = "", int $fadein = -1, int $fadeout = -1, int $duration = -1) {
-        $pk = new SetTitlePacket();
-        $pk->type = SetTitlePacket::TYPE_TITLE;
-        $pk->title = $title;
-        $pk->fadeInDuration = $fadein;
-        $pk->fadeOutDuration = $fadeout;
-        $pk->duration = $duration;
-        $this->dataPacket($pk);
-
         if ($subtitle !== "") {
             $pk = new SetTitlePacket();
             $pk->type = SetTitlePacket::TYPE_SUB_TITLE;
@@ -3450,6 +3388,14 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
             $pk->duration = $duration;
             $this->dataPacket($pk);
         }
+		
+		$pk = new SetTitlePacket();
+        $pk->type = SetTitlePacket::TYPE_TITLE;
+        $pk->title = $title;
+        $pk->fadeInDuration = $fadein;
+        $pk->fadeOutDuration = $fadeout;
+        $pk->duration = $duration;
+        $this->dataPacket($pk);
     }
 
     /**
@@ -3486,11 +3432,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
             }
 
             //$this->setLinked();
-
-            if ($this->fishingHook instanceof FishingHook) {
-                $this->fishingHook->close();
-                $this->fishingHook = null;
-            }
 
             $this->removeEffect(Effect::HEALTH_BOOST);
 
