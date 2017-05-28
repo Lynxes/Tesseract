@@ -25,7 +25,7 @@ use pocketmine\item\Item;
 use pocketmine\item\Tool;
 
 
-class LitRedstoneLamp extends Solid{
+class LitRedstoneLamp extends RedstoneLamp{
 	protected $id = self::LIT_REDSTONE_LAMP;
 
 	public function __construct($meta = 0){
