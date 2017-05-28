@@ -1339,14 +1339,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 $item = Item::get(Item::ARROW, $entity->getPotionId(), 1);
 
                 $add = false;
-                if (!$this->server->allowInventoryCheats and !$this->isCreative()) {
-                    if (!$this->getFloatingInventory()->canAddItem($item) or !$this->inventory->canAddItem($item)) {
-                        //The item is added to the floating inventory to allow client to handle the pickup
-                        //We have to also check if it can be added to the real inventory before sending packets.
-                        continue;
-                    }
-                    $add = true;
-                }
 
                 $this->server->getPluginManager()->callEvent($ev = new InventoryPickupArrowEvent($this->inventory, $entity));
                 if ($ev->isCancelled()) {
@@ -1368,12 +1360,6 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
                     if ($item instanceof Item) {
                         $add = false;
-                        if (!$this->server->allowInventoryCheats and !$this->isCreative()) {
-                            if (!$this->getFloatingInventory()->canAddItem($item) or !$this->inventory->canAddItem($item)) {
-                                continue;
-                            }
-                            $add = true;
-                        }
 
                         $this->server->getPluginManager()->callEvent($ev = new InventoryPickupItemEvent($this->inventory, $entity));
                         if ($ev->isCancelled()) {
